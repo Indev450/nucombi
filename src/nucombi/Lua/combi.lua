@@ -63,3 +63,7 @@ addHook("ThinkFrame", function()
         handleRespawn(p)
     end
 end)
+
+addHook("NetVars", function(net)
+    combi.running = net($)
+end)

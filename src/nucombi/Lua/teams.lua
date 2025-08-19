@@ -113,7 +113,7 @@ local function takeRandomPlayer(plist)
         i = P_RandomRange(1, #plist)
     end
 
-    return table.remove(plist)
+    return table.remove(plist, i)
 end
 
 local function assignTeams()

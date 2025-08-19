@@ -4,7 +4,7 @@ local getCombiStuff = COMBI_GetCombiStuff
 local cv_dist = CV_RegisterVar {
     name = "combi_tether_dist",
     defaultvalue = "300",
-    possiblevalue = { MIN = 0, MAX=FRACUNIT-1 },
+    possiblevalue = { MIN = 1, MAX=FRACUNIT-1 },
     flags = CV_NETVAR,
 }
 
@@ -32,6 +32,14 @@ local function mobjDist3D(mo1, mo2)
     return FixedHypot(FixedHypot(mo1.x - mo2.x, mo1.y - mo2.y), mo1.z - mo2.z)
 end
 
+local function doTeleport(p1, p2)
+    p1.powers[pw_flashing] = TICRATE
+    P_SetOrigin(p1.mo, p2.mo.x, p2.mo.y, p2.mo.z)
+    p1.mo.momx = p2.mo.momx
+    p1.mo.momy = p2.mo.momy
+    p1.mo.angle = p2.mo.angle
+end
+
 -- Applies Hooke's law to p1 (only to p1)
 local function tetherPull(p1, p2)
     local cs = getCombiStuff(p1)
@@ -40,7 +48,24 @@ local function tetherPull(p1, p2)
 
     local dist = mobjDist3D(mo1, mo2)
 
-    local diff = max(dist - cv_dist.value*mapobjectscale, 0)
+    if dist < FRACUNIT then return end
+
+    local maxdist = cv_dist.value*mapobjectscale
+
+    -- If distance is suddenly this high, then other player must've teleported...
+    if dist > maxdist*3 then
+        -- Very convinient fact: game always updates positions, so we can determine who has teleported by picking player with better position!
+        -- relies on good map checkpoints tho
+        if p1.kartstuff[k_position] > p2.kartstuff[k_position] then
+            doTeleport(p1, p2)
+        else
+            doTeleport(p2, p1)
+        end
+
+        return
+    end
+
+    local diff = max(dist - maxdist, 0)
 
     -- Hooke's law
     local force = FixedMul(diff, cv_stiffness.value)

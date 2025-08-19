@@ -1,3 +1,7 @@
+rawset(_G, "combi", {
+    running = false,
+})
+
 rawset(_G, "COMBI_GetCombiStuff", function(p)
     local cs = p.combistuff
 
@@ -10,3 +14,6 @@ rawset(_G, "COMBI_GetCombiStuff", function(p)
 
     return cs
 end)
+
+-- Maybe someone will want to check if its "nucombi" specifically?
+rawset(_G, "NUCOMBI", true)

@@ -1,3 +1,10 @@
+local cv_active = CV_RegisterVar {
+    name = "combi_active",
+    defaultvalue = "On",
+    possiblevalue = CV_OnOff,
+    flags = CV_NETVAR,
+}
+
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
 -- teams.lua
@@ -9,7 +16,11 @@ local isIngame = COMBI_IsInGame
 local COMBI_STARTTIME = 6*TICRATE + (3*TICRATE/4) - TICRATE
 
 addHook("MapLoad", function()
-    resetTeams()
+    if combi.running then
+        resetTeams()
+    end
+
+    combi.running = cv_active.value == 1
 end)
 
 local function handleRespawn(p)
@@ -38,6 +49,8 @@ local function handleRespawn(p)
 end
 
 addHook("ThinkFrame", function()
+    if not combi.running then return end
+
     if leveltime < COMBI_STARTTIME then
         return
     elseif leveltime == COMBI_STARTTIME then

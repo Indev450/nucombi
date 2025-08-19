@@ -1,9 +1,26 @@
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
 
-local STIFFNESS = FRACUNIT/16
-local DAMPER = FRACUNIT/2
-local DIST = 300*FRACUNIT
+local cv_dist = CV_RegisterVar {
+    name = "combi_tether_dist",
+    defaultvalue = "300",
+    possiblevalue = { MIN = 0, MAX=FRACUNIT-1 },
+    flags = CV_NETVAR,
+}
+
+local cv_stiffness = CV_RegisterVar {
+    name = "combi_tether_stiffness",
+    defaultvalue = "0.0625",
+    possiblevalue = { MIN = 16, MAX = INT32_MAX },
+    flags = CV_FLOAT|CV_NETVAR,
+}
+
+local cv_damper = CV_RegisterVar {
+    name = "combi_tether_damper",
+    defaultvalue = "0.01",
+    possiblevalue = { MIN = 0, MAX = INT32_MAX },
+    flags = CV_FLOAT|CV_NETVAR,
+}
 
 local function applyAccel(mo, dirx, diry, dirz, accel)
     mo.momx = mo.momx + FixedMul(dirx, accel)
@@ -23,32 +40,30 @@ local function tetherPull(p1, p2)
 
     local dist = mobjDist3D(mo1, mo2)
 
-    local diff = max(dist - FixedMul(DIST, mapobjectscale), 0)
+    local diff = max(dist - cv_dist.value*mapobjectscale, 0)
 
-    if diff > 0 then
-        -- Hooke's law
-        local force = FixedMul(diff, STIFFNESS)
-        local damper = 0
+    -- Hooke's law
+    local force = FixedMul(diff, cv_stiffness.value)
+    local damper = 0
 
-        -- Damper it a bit (should help prevent endless swinging in air probably?)
-        if cs.last_dist[p2] ~= nil then
-            damper = FixedMul(dist - cs.last_dist[p2], DAMPER)
-        end
-
-        -- Acceleration = Force / Mass
-        local mass = FRACUNIT -- TODO?
-        local a = FixedDiv(force + damper, mass)
-
-        -- Calculate direction in which acceleration is applied
-        local dirx, diry, dirz = FixedDiv(mo2.x - mo1.x, dist), FixedDiv(mo2.y - mo1.y, dist), FixedDiv(mo2.z - mo1.z, dist)
-
-        -- Driving becomes a bit broken when z acceleration is applied
-        if P_IsObjectOnGround(mo1) and P_IsObjectOnGround(mo2) then
-            dirz = 0
-        end
-
-        applyAccel(mo1, dirx, diry, dirz, a)
+    -- Damper it a bit (should help prevent endless swinging in air probably?)
+    if cs.last_dist[p2] ~= nil then
+        damper = FixedMul(max(dist - cs.last_dist[p2], 0), cv_damper.value)
     end
+
+    -- Acceleration = Force / Mass
+    local mass = FRACUNIT -- TODO?
+    local a = FixedDiv(force + damper, mass)
+
+    -- Calculate direction in which acceleration is applied
+    local dirx, diry, dirz = FixedDiv(mo2.x - mo1.x, dist), FixedDiv(mo2.y - mo1.y, dist), FixedDiv(mo2.z - mo1.z, dist)
+
+    -- Driving becomes a bit broken when z acceleration is applied
+    if P_IsObjectOnGround(mo1) and P_IsObjectOnGround(mo2) then
+        dirz = 0
+    end
+
+    applyAccel(mo1, dirx, diry, dirz, a)
 
     cs.last_dist[p2] = dist
 end

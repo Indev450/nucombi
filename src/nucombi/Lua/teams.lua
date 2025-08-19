@@ -31,6 +31,51 @@ local function isAlive(p)
     return p.deadtimer == 0 and p.kartstuff[k_respawn] == 0
 end
 
+-- Gentlemen, synchronize your death watches.
+local function synchTimer(p1, p2, k)
+    local timer = max(p1.kartstuff[k], p2.kartstuff[k])
+    p1.kartstuff[k] = timer
+    p2.kartstuff[k] = timer
+end
+
+-- Normally you can only go shrink -> normal, or normal -> growth, and grow -> normal, so only those cases are handled
+local function setGrowShrink(p, timer)
+    local current = p.kartstuff[k_growshrinktimer]
+
+    if timer == current then return end
+
+    S_StartSound(p.mo, (timer > current) and sfx_kc5a or sfx_kc59)
+
+    p.mo.scalespeed = mapobjectscale/TICRATE
+    if timer == 0 then
+        p.mo.color = p.skincolor
+        p.mo.destscale = mapobjectscale
+    else
+        p.mo.destscale = 3*mapobjectscale/2
+    end
+
+    p.kartstuff[k_growshrinktimer] = timer
+end
+
+local function synchGrowCancel(p1, p2)
+    if p2.kartstuff[k_growcancel] < p1.kartstuff[k_growcancel] then
+        p1.kartstuff[k_growcancel] = min($, 20)
+    end
+end
+
+local function setExiting(p, t, losing)
+    if p.exiting > 0 then return end
+
+    p.exiting = t
+    S_StartSound(p.mo, losing and sfx_klose or sfx_kwin)
+end
+
+local function setLaps(p, laps)
+    if p.laps == laps then return end
+    p.laps = laps
+    p.starpostnum = 0 -- Don't do 2 laps in one go pls
+end
+
 local function updateTeam(team)
     local p1, p2 = team.p1, team.p2
 
@@ -59,7 +104,41 @@ local function updateTeam(team)
         team.maxposition = min($, p2.kartstuff[k_position])
     end
 
-    -- TODO - timers (sneaker, driftboost, etc)
+    synchTimer(p1, p2, k_sneakertimer)
+    synchTimer(p1, p2, k_startboost)
+    synchTimer(p1, p2, k_driftboost)
+    synchTimer(p1, p2, k_hyudorotimer)
+    synchTimer(p1, p2, k_invincibilitytimer)
+
+    -- Grow/shrink is a bit more involved
+    if p1.kartstuff[k_growshrinktimer] ~= 0 or p2.kartstuff[k_growshrinktimer] ~= 0 then
+        local timer = max(p1.kartstuff[k_growshrinktimer], p2.kartstuff[k_growshrinktimer])
+
+        setGrowShrink(p1, timer)
+        setGrowShrink(p2, timer)
+    end
+
+    -- Allow canceling grow
+    synchGrowCancel(p1, p2)
+    synchGrowCancel(p2, p1)
+
+    -- FI(NI)SH!
+    local exiting = max(p1.exiting, p2.exiting)
+
+    if exiting > 0 then
+        -- Hack so your character doesn't say lose quote when your team actually wins
+        -- (in simplest case, happens when you have 1 team, 1st player who touches finish line says win quote
+        -- but second would say lose one because according to game they are 2nd and are losing)
+        local losing = K_IsPlayerLosing(p1) and K_IsPlayerLosing(p2)
+        setExiting(p1, exiting, losing)
+        setExiting(p2, exiting, losing)
+    end
+
+    -- Also synch laps
+    local laps = max(p1.laps, p2.laps)
+
+    setLaps(p1, laps)
+    setLaps(p2, laps)
 end
 
 local function updatePosition(p, position, oldposition)

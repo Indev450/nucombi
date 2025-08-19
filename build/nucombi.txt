@@ -1,0 +1,8 @@
+$basepath src/nucombi/
+$output out/nucombi.pk3
+
+Lua/base.lua
+Lua/tether.lua
+Lua/teams.lua
+Lua/**
+**

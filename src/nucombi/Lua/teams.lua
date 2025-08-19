@@ -126,6 +126,7 @@ local function updateTeam(team)
     local exiting = max(p1.exiting, p2.exiting)
 
     if exiting > 0 then
+        team.finish = true
         -- Hack so your character doesn't say lose quote when your team actually wins
         -- (in simplest case, happens when you have 1 team, 1st player who touches finish line says win quote
         -- but second would say lose one because according to game they are 2nd and are losing)
@@ -150,6 +151,28 @@ local function updatePosition(p, position, oldposition)
     p.kartstuff[k_positiondelay] = 0
 end
 
+local cv_karteliminatelast
+local function getEliminateLast()
+    if cv_karteliminatelast == nil then
+        cv_karteliminatelast = CV_FindVar("karteliminatelast")
+    end
+
+    return cv_karteliminatelast.value
+end
+
+local function eliminate(p)
+    if not isIngame(p) then return end
+
+    p.lives = 0
+    p.pflags = $|PF_TIMEOVER
+	P_DamageMobj(p.mo, nil, nil, 10000)
+
+	local boom = P_SpawnMobj(p.mo.x, p.mo.y, p.mo.z, MT_FZEROBOOM)
+	boom.scale = p.mo.scale
+	boom.angle = p.mo.angle
+	boom.target = p.mo
+end
+
 local function updateTeams()
     -- First, check if someone joined midgame, if so add them as single-player team
     for p in players.iterate do
@@ -159,8 +182,18 @@ local function updateTeams()
         end
     end
 
+    local total = 0
+    local racing = 0
     for _, team in ipairs(combiteams) do
         updateTeam(team)
+
+        if isIngame(team.p1) then
+            total = total + 1
+
+            if not team.finish then
+                racing = racing + 1
+            end
+        end
     end
 
     -- Now assign positions
@@ -171,6 +204,26 @@ local function updateTeams()
 
         updatePosition(team.p1, team.position, team.oldposition)
         updatePosition(team.p2, team.position, team.oldposition)
+    end
+
+    -- >:3
+    if getEliminateLast() and total > 1 and racing == 1 then
+        local elimteam = nil
+
+        for _, team in ipairs(combiteams) do
+            if not team.finish and isIngame(team.p1) then
+                elimteam = team
+                break
+            end
+        end
+
+        assert(elimteam, "couldn't find last racing team for karteliminatelast?")
+
+        -- Its a way to finish too... (also prevents loud fucking explosion)
+        elimteam.finish = true
+
+        eliminate(elimteam.p1)
+        eliminate(elimteam.p2)
     end
 end
 

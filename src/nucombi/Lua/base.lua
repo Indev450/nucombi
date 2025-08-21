@@ -7,7 +7,7 @@ rawset(_G, "COMBI_GetCombiStuff", function(p)
 
     if cs == nil then
         cs = {
-            last_dist = {}, -- key - player, value - distance from last frame
+            last_dist = nil, -- distance to partner from last frame
             airtime = 0, -- When above certain threshold, teleport back to partner
             team = nil, -- Team this player belongs too
         }
@@ -21,7 +21,7 @@ end)
 rawset(_G, "COMBI_ClearCombiStuff", function(p)
     local cs = COMBI_GetCombiStuff(p)
 
-    cs.last_dist = {}
+    cs.last_dist = nil
     cs.airtime = 0
     cs.team = nil
 end)

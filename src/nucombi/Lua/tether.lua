@@ -72,8 +72,8 @@ local function tetherPull(p1, p2)
     local damper = 0
 
     -- Damper it a bit (should help prevent endless swinging in air probably?)
-    if cs.last_dist[p2] ~= nil then
-        damper = FixedMul(max(dist - cs.last_dist[p2], 0), cv_damper.value)
+    if cs.last_dist ~= nil then
+        damper = FixedMul(max(dist - cs.last_dist, 0), cv_damper.value)
     end
 
     -- Acceleration = Force / Mass
@@ -90,7 +90,7 @@ local function tetherPull(p1, p2)
 
     applyAccel(mo1, dirx, diry, dirz, a)
 
-    cs.last_dist[p2] = dist
+    cs.last_dist = dist
 end
 
 rawset(_G, "COMBI_TetherPull", tetherPull)

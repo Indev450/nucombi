@@ -67,3 +67,5 @@ end)
 addHook("NetVars", function(net)
     combi.running = net($)
 end)
+
+rawset(_G, "COMBI_STARTTIME", COMBI_STARTTIME)

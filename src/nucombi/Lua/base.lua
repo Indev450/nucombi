@@ -9,11 +9,21 @@ rawset(_G, "COMBI_GetCombiStuff", function(p)
         cs = {
             last_dist = {}, -- key - player, value - distance from last frame
             airtime = 0, -- When above certain threshold, teleport back to partner
+            team = nil, -- Team this player belongs too
         }
         p.combistuff = cs
     end
 
     return cs
+end)
+
+-- Clear things that should not persist between levels
+rawset(_G, "COMBI_ClearCombiStuff", function(p)
+    local cs = COMBI_GetCombiStuff(p)
+
+    cs.last_dist = {}
+    cs.airtime = 0
+    cs.team = nil
 end)
 
 -- Maybe someone will want to check if its "nucombi" specifically?

@@ -1,5 +1,6 @@
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
+local clearCombiStuff = COMBI_ClearCombiStuff
 -- tether.lua
 local tetherPull = COMBI_TetherPull
 local doTeleport = COMBI_DoTeleport
@@ -263,6 +264,7 @@ local function resetTeams()
     combiteams = {}
 
     for p in players.iterate do
+        clearCombiStuff(p)
         p.combi = nil
         p.combi_p = nil
     end

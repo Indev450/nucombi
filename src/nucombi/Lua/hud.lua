@@ -1,5 +1,7 @@
 -- teams.lua
 local isIngame = COMBI_IsInGame
+-- friends.lua
+local getFriend = COMBI_GetFriend
 
 -- Cache for patches
 local PATCH
@@ -113,7 +115,7 @@ local function drawPartner(v, p)
 
     if leveltime == COMBI_STARTTIME+1 then
         if p.combi_p and p.combi_p.valid then
-            S_StartSound(nil, sfx_kc48, p)
+            S_StartSound(nil, p.combi_p == getFriend(p) and sfx_yeeeah or sfx_kc48, p)
         else
             S_StartSound(nil, sfx_kc49, p)
         end

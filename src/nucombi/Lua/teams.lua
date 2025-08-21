@@ -93,53 +93,57 @@ local function updateTeam(team)
         return
     end
 
-    if isIngame(p2) and isAlive(p1) and isAlive(p2) then
+    local has_partner = isIngame(p2)
+
+    if has_partner and isAlive(p1) and isAlive(p2) then
         tetherPull(p1, p2)
         tetherPull(p2, p1)
     end
 
     -- For sorting and assigning positions later
     team.maxposition = p1.kartstuff[k_position]
-    if isIngame(p2) then
+    if has_partner then
         team.maxposition = min($, p2.kartstuff[k_position])
     end
 
-    synchTimer(p1, p2, k_sneakertimer)
-    synchTimer(p1, p2, k_startboost)
-    synchTimer(p1, p2, k_driftboost)
-    synchTimer(p1, p2, k_hyudorotimer)
-    synchTimer(p1, p2, k_invincibilitytimer)
+    if has_partner then
+        synchTimer(p1, p2, k_sneakertimer)
+        synchTimer(p1, p2, k_startboost)
+        synchTimer(p1, p2, k_driftboost)
+        synchTimer(p1, p2, k_hyudorotimer)
+        synchTimer(p1, p2, k_invincibilitytimer)
 
-    -- Grow/shrink is a bit more involved
-    if p1.kartstuff[k_growshrinktimer] ~= 0 or p2.kartstuff[k_growshrinktimer] ~= 0 then
-        local timer = max(p1.kartstuff[k_growshrinktimer], p2.kartstuff[k_growshrinktimer])
+        -- Grow/shrink is a bit more involved
+        if p1.kartstuff[k_growshrinktimer] ~= 0 or p2.kartstuff[k_growshrinktimer] ~= 0 then
+            local timer = max(p1.kartstuff[k_growshrinktimer], p2.kartstuff[k_growshrinktimer])
 
-        setGrowShrink(p1, timer)
-        setGrowShrink(p2, timer)
+            setGrowShrink(p1, timer)
+            setGrowShrink(p2, timer)
+        end
+
+        -- Allow canceling grow
+        synchGrowCancel(p1, p2)
+        synchGrowCancel(p2, p1)
     end
 
-    -- Allow canceling grow
-    synchGrowCancel(p1, p2)
-    synchGrowCancel(p2, p1)
-
     -- FI(NI)SH!
-    local exiting = max(p1.exiting, p2.exiting)
+    local exiting = max(p1.exiting, has_partner and p2.exiting or 0)
 
     if exiting > 0 then
         team.finish = true
         -- Hack so your character doesn't say lose quote when your team actually wins
         -- (in simplest case, happens when you have 1 team, 1st player who touches finish line says win quote
         -- but second would say lose one because according to game they are 2nd and are losing)
-        local losing = K_IsPlayerLosing(p1) and K_IsPlayerLosing(p2)
+        local losing = K_IsPlayerLosing(p1) and (not has_partner or K_IsPlayerLosing(p2))
         setExiting(p1, exiting, losing)
-        setExiting(p2, exiting, losing)
+        if has_partner then setExiting(p2, exiting, losing) end
     end
 
     -- Also synch laps
-    local laps = max(p1.laps, p2.laps)
+    local laps = max(p1.laps, has_partner and p2.laps or 0)
 
     setLaps(p1, laps)
-    setLaps(p2, laps)
+    if has_partner then setLaps(p2, laps) end
 end
 
 local function updatePosition(p, position, oldposition)

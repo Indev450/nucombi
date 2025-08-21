@@ -291,8 +291,17 @@ end
 local function assignTeams()
     local plist = {}
 
+    -- Players without combi friend go into plist, friend teams get created right away
     for p in players.iterate do
-        if not p.spectator then table.insert(plist, p) end
+        if p.spectator then continue end
+        if getCombiStuff(p).team ~= nil then continue end -- Don't assign team twice (for friend teams)
+
+        local friend = COMBI_GetFriend(p)
+        if isIngame(friend) then
+            addTeam(p, friend)
+        else
+            table.insert(plist, p)
+        end
     end
 
     while #plist > 0 do

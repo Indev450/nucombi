@@ -28,3 +28,7 @@ end)
 
 -- Maybe someone will want to check if its "nucombi" specifically?
 rawset(_G, "NUCOMBI", true)
+
+addHook("NetVars", function(net)
+    combi = net($)
+end)

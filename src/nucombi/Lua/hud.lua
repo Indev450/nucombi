@@ -293,6 +293,7 @@ end
 
 hud.add(function(v, p)
     if not combi.running then return end
+    if p.spectator then return end
     if p ~= displayplayers[0] then return end -- TODO
 
     if not PATCH then cachePatches(v) end

@@ -13,19 +13,19 @@ local cv_maxairtime = CV_RegisterVar {
     flags = CV_NETVAR,
 }
 
-local combiteams = {}
+combi.teams = {}
 
 local function addTeam(p1, p2)
-    table.insert(combiteams, { p1 = p1, p2 = p2 })
+    table.insert(combi.teams, { p1 = p1, p2 = p2 })
     if p1 then
-        getCombiStuff(p1).team = combiteams[#combiteams]
+        getCombiStuff(p1).team = combi.teams[#combi.teams]
 
         -- haya combi compatibility
         p1.combi = p2 and #p2
         p1.combi_p = p2
     end
     if p2 then
-        getCombiStuff(p2).team = combiteams[#combiteams]
+        getCombiStuff(p2).team = combi.teams[#combi.teams]
 
         -- haya combi compatibility
         p2.combi = p1 and #p1
@@ -217,7 +217,7 @@ local function updateTeams()
 
     local total = 0
     local racing = 0
-    for _, team in ipairs(combiteams) do
+    for _, team in ipairs(combi.teams) do
         updateTeam(team)
 
         if isIngame(team.p1) then
@@ -230,8 +230,8 @@ local function updateTeams()
     end
 
     -- Now assign positions
-    table.sort(combiteams, function(a, b) return a.maxposition < b.maxposition end)
-    for i, team in ipairs(combiteams) do
+    table.sort(combi.teams, function(a, b) return a.maxposition < b.maxposition end)
+    for i, team in ipairs(combi.teams) do
         team.oldposition = team.position -- may be nil
         team.position = i
 
@@ -243,7 +243,7 @@ local function updateTeams()
     if getEliminateLast() and total > 1 and racing == 1 then
         local elimteam = nil
 
-        for _, team in ipairs(combiteams) do
+        for _, team in ipairs(combi.teams) do
             if not team.finish and isIngame(team.p1) then
                 elimteam = team
                 break
@@ -261,7 +261,7 @@ local function updateTeams()
 end
 
 local function resetTeams()
-    combiteams = {}
+    combi.teams = {}
 
     for p in players.iterate do
         clearCombiStuff(p)

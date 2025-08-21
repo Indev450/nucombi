@@ -48,19 +48,25 @@ local function synchTimer(p1, p2, k)
     p2.kartstuff[k] = timer
 end
 
+local function sign(x)
+    if x < 0 then return -1 end
+    if x > 0 then return 1 end
+    return 0
+end
+
 -- Normally you can only go shrink -> normal, or normal -> growth, and grow -> normal, so only those cases are handled
 local function setGrowShrink(p, timer)
     local current = p.kartstuff[k_growshrinktimer]
 
     if timer == current then return end
 
-    S_StartSound(p.mo, (timer > current) and sfx_kc5a or sfx_kc59)
+    S_StartSound(p.mo, (sign(timer) > sign(current)) and sfx_kc5a or sfx_kc59)
 
     p.mo.scalespeed = mapobjectscale/TICRATE
     if timer == 0 then
         p.mo.color = p.skincolor
         p.mo.destscale = mapobjectscale
-    else
+    elseif timer > 0 then
         p.mo.destscale = 3*mapobjectscale/2
     end
 

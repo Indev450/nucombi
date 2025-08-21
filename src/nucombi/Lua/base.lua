@@ -8,6 +8,7 @@ rawset(_G, "COMBI_GetCombiStuff", function(p)
     if cs == nil then
         cs = {
             last_dist = {}, -- key - player, value - distance from last frame
+            airtime = 0, -- When above certain threshold, teleport back to partner
         }
         p.combistuff = cs
     end

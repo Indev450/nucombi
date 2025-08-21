@@ -94,3 +94,4 @@ local function tetherPull(p1, p2)
 end
 
 rawset(_G, "COMBI_TetherPull", tetherPull)
+rawset(_G, "COMBI_DoTeleport", doTeleport)

@@ -2,6 +2,15 @@
 local getCombiStuff = COMBI_GetCombiStuff
 -- tether.lua
 local tetherPull = COMBI_TetherPull
+local doTeleport = COMBI_DoTeleport
+
+-- Multiples of TICRATE
+local cv_maxairtime = CV_RegisterVar {
+    name = "combi_maxairtime",
+    defaultvalue = "3",
+    possiblevalue = CV_Natural,
+    flags = CV_NETVAR,
+}
 
 local combiteams = {}
 
@@ -76,6 +85,22 @@ local function setLaps(p, laps)
     p.starpostnum = 0 -- Don't do 2 laps in one go pls
 end
 
+local function airTick(p)
+    local cs = getCombiStuff(p)
+
+    if P_IsObjectOnGround(p.mo) or not P_IsObjectOnGround(p.combi_p.mo) or p.kartstuff[k_respawn] > 0 then
+        cs.airtime = 0
+        return
+    end
+
+    cs.airtime = $ + 1
+
+    if cs.airtime > cv_maxairtime.value*TICRATE then
+        cs.airtime = 0
+        doTeleport(p, p.combi_p)
+    end
+end
+
 local function updateTeam(team)
     local p1, p2 = team.p1, team.p2
 
@@ -124,6 +149,9 @@ local function updateTeam(team)
         -- Allow canceling grow
         synchGrowCancel(p1, p2)
         synchGrowCancel(p2, p1)
+
+        airTick(p1)
+        airTick(p2)
     end
 
     -- FI(NI)SH!

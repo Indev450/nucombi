@@ -4,6 +4,7 @@ local clearCombiStuff = COMBI_ClearCombiStuff
 -- tether.lua
 local tetherPull = COMBI_TetherPull
 local doTeleport = COMBI_DoTeleport
+local spawnTetherEffect = COMBI_SpawnTether
 
 -- Multiples of TICRATE
 local cv_maxairtime = CV_RegisterVar {
@@ -31,6 +32,8 @@ local function addTeam(p1, p2)
         p2.combi = p1 and #p1
         p2.combi_p = p1
     end
+
+    if p1 and p2 then spawnTetherEffect(p1, p2) end
 end
 
 local function isIngame(p)

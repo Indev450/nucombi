@@ -73,7 +73,7 @@ local function drawPartner(v, p)
     local flags = V_HUDTRANS|V_SNAPTOBOTTOM
 
     drawIcon(v, x-14, 100+yoffset-3, p, flags)
-    v.drawString(x+2, 100+yoffset-12, p.name, flags|V_ALLOWLOWERCASE, "thin-right")
+    v.drawString(x-16, 100+yoffset, p.name, flags|V_ALLOWLOWERCASE, "thin-right")
 
     local color_l = v.getColormap(TC_DEFAULT, p.mo.color)
     local patch_l = PATCH["COMBH_L"]
@@ -82,6 +82,7 @@ local function drawPartner(v, p)
 
     local color_r = v.getColormap(TC_DEFAULT, SKINCOLOR_GREY)
     local patch_r = PATCH["COMBH_R"]
+    local growcancel = false
 
     local partner = "???"
 
@@ -97,6 +98,7 @@ local function drawPartner(v, p)
         if blink then tc = TC_BLINK end
 
         color_r = v.getColormap(tc, p.combi_p.mo.color)
+        growcancel = p.combi_p.kartstuff[k_growcancel] > 4
     elseif leveltime <= COMBI_STARTTIME then
         -- Slower blinking before partner is selected
         if leveltime % 8 < 4 then
@@ -121,10 +123,14 @@ local function drawPartner(v, p)
         end
     end
 
-    v.drawString(x+25, 100+yoffset-12, partner, flags|V_ALLOWLOWERCASE, "thin")
+    v.drawString(x+42, 100+yoffset, partner, flags|V_ALLOWLOWERCASE, "thin")
     if patch_r then
         drawIcon(v, x+24, 100+yoffset-3, p.combi_p, flags, blink)
         v.draw(x+2, 92+yoffset, patch_r, flags, color_r)
+    end
+
+    if growcancel then
+        v.drawString(x-16, 100+yoffset-14, "CANCEL GROW", flags|((leveltime % 8 < 4 and V_BLUEMAP) or 0), "thin")
     end
 end
 
@@ -172,7 +178,6 @@ local function drawPartnerItem(v, p)
     local itembar, maxl
     local barlength = 12
     local itemtime = 8*TICRATE
-    local growcancel = false
 
     if ks[k_itemroulette] then
         item = ((ks[k_itemroulette] / 3) % 14) + 1
@@ -206,10 +211,9 @@ local function drawPartnerItem(v, p)
                 item = 0
             end
         elseif ks[k_growshrinktimer] > 0 then
-            if ks[k_growcancel] > 3 then -- Wait a little, just to allow honking horn without showing "cancel grow"
+            if ks[k_growcancel] > 0 then
                 itembar = ks[k_growcancel]
                 maxl = 26
-                growcancel = true
             end
 
             if leveltime & 1 then
@@ -262,11 +266,6 @@ local function drawPartnerItem(v, p)
             v.drawFill(x + bx + length, y + by + 1, 1, height, 12|flags)
 
             v.drawFill(x + bx + 2, y + by + 1, length-2, 1, 120|flags)
-        end
-
-        if growcancel then
-            v.drawString(x + 32, y + 14, "CANCEL", flags, "small-right")
-            v.drawString(x + 32, y + 20, "GROW", flags|((leveltime % 8 < 4 and V_BLUEMAP) or 0), "small-right")
         end
 	end
 end

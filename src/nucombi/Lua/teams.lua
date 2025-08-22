@@ -63,7 +63,9 @@ local function setGrowShrink(p, timer)
 
     if timer == current then return end
 
-    S_StartSound(p.mo, (sign(timer) > sign(current)) and sfx_kc5a or sfx_kc59)
+    if sign(timer) ~= sign(current) then
+        S_StartSound(p.mo, (sign(timer) > sign(current)) and sfx_kc5a or sfx_kc59)
+    end
 
     p.mo.scalespeed = mapobjectscale/TICRATE
     if timer == 0 then

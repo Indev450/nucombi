@@ -1,3 +1,5 @@
+-- base.lua
+local getCombiStuff = COMBI_GetCombiStuff
 -- teams.lua
 local isIngame = COMBI_IsInGame
 -- friends.lua
@@ -54,6 +56,29 @@ local function drawIcon(v, x, y, p, flags, blink)
     end
 
     v.drawScaled(x*FRACUNIT, y*FRACUNIT, scale, icon, flags, cmap)
+end
+
+local function drawDirection(v, x, y, scale, dir, flags)
+    local t = v.localTransFlag()>>V_ALPHASHIFT
+    if leveltime % 8 < 4 then
+        if t < 9 then
+            t = min(t+1, 9)
+        else
+            t = t-1
+        end
+    end
+    flags = (flags & ~V_HUDTRANS)|(t<<V_ALPHASHIFT)
+
+    if dir ~= 0 then
+        local patch = dir == -1 and PATCH["DIRLEFT"] or PATCH["DIRRIGHT"]
+        x = x - FixedMul(scale, patch.width*FRACUNIT/2)
+        v.drawScaled(x, y, scale, patch, flags)
+    else
+        local patch = PATCH["DIRRIGHT"]
+        v.drawScaled(x - FixedMul(scale, patch.width*FRACUNIT), y, scale, patch, flags)
+        patch = PATCH["DIRLEFT"]
+        v.drawScaled(x, y, scale, patch, flags)
+    end
 end
 
 local function drawPartner(v, p)
@@ -131,6 +156,11 @@ local function drawPartner(v, p)
 
     if growcancel then
         v.drawString(x-16, 100+yoffset-14, "CANCEL GROW", flags|((leveltime % 8 < 4 and V_BLUEMAP) or 0), "thin")
+    end
+
+    local cs = getCombiStuff(p, true)
+    if cs and cs.signal.timer > 0 then
+        drawDirection(v, (x+21)*FRACUNIT, (100+yoffset-8)*FRACUNIT, FRACUNIT/8, cs.signal.direction, flags)
     end
 end
 
@@ -270,6 +300,16 @@ local function drawPartnerItem(v, p)
 	end
 end
 
+local function drawPartnerDirection(v, p)
+    if not isIngame(p) then return end
+
+    local cs = getCombiStuff(p, true)
+
+    if cs and cs.signal.timer > 0 then
+        drawDirection(v, (160+31)*FRACUNIT, 64*FRACUNIT, FRACUNIT/2, cs.signal.direction, V_HUDTRANS|V_SNAPTOTOP)
+    end
+end
+
 local function cachePatches(v)
     PATCH = {}
 
@@ -290,6 +330,9 @@ local function cachePatches(v)
     addpatch("K_ISBGD")
     addpatch("K_ISMUL")
     addpatch("K_ISIMER") -- isimer
+
+    PATCH["DIRLEFT"] = v.cachePatch("MARRD0")
+    PATCH["DIRRIGHT"] = v.cachePatch("MARRA0")
 end
 
 hud.add(function(v, p)
@@ -301,4 +344,5 @@ hud.add(function(v, p)
 
     drawPartner(v, p)
     drawPartnerItem(v, p.combi_p)
+    drawPartnerDirection(v, p.combi_p)
 end)

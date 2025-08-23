@@ -179,6 +179,93 @@ local function handleRespawn(p)
     p.mo.angle = p2.mo.angle
 end
 
+local function doSignal(p, direction)
+    local signal = getCombiStuff(p).signal
+
+    if signal.direction ~= direction or signal.timer == 0 then
+        -- TODO - sound
+    end
+
+    signal.direction = direction
+    signal.timer = TICRATE
+end
+
+local function handleSignal(p)
+    if not isIngame(p.combi_p) then return end
+
+    local cs = getCombiStuff(p)
+    cs.signal.timer = max(0, $ - 1)
+
+    if not cs.signal.use_custom_buttons then return end
+
+    local direction
+
+    if p.cmd.buttons & BT_CUSTOM1 then
+        direction = -1
+    elseif p.cmd.buttons & BT_CUSTOM2 then
+        direction = 1
+    elseif p.cmd.buttons & BT_CUSTOM3 then
+        direction = 0
+    end
+
+    if direction ~= nil then
+        doSignal(p, direction)
+    end
+end
+
+local onopt = {
+    on = true,
+    yes = true,
+    ["1"] = true,
+    off = false,
+    no = false,
+    ["0"] = false,
+}
+COM_AddCommand("combi_usecustombuttons", function(p, opt)
+    local signal = getCombiStuff(p).signal
+
+    if not opt then
+        CONS_Printf(p, "combi_usecustombuttons is currently "..(signal.use_custom_buttons and "On" or "Off"))
+        return
+    end
+
+    local v = onopt[opt:lower()]
+
+    if v == nil then
+        CONS_Printf(p, "Usage: combi_usecustombuttons on/off")
+        return
+    end
+
+    signal.use_custom_buttons = v
+
+    CONS_Printf(p, "combi_usecustombuttons has been set to "..(v and "On" or "Off"))
+
+    if not v then
+        CONS_Printf(p, "You can bind other buttons to combi_signal command (for example, bind q \"combi_signal left\")")
+    end
+end)
+
+local diropt = {
+    left = -1,
+    ["-1"] = -1,
+    forward = 0,
+    ["0"] = 0,
+    right = 1,
+    ["1"] = 1,
+}
+COM_AddCommand("combi_signal", function(p, dir)
+    if not dir or diropt[dir:lower()] == nil then
+        CONS_Printf(p, "Usage: combi_signal left/forward/right")
+        return
+    end
+
+    if not isIngame(p.combi_p) then
+        return
+    end
+
+    doSignal(p, diropt[dir:lower()])
+end)
+
 addHook("ThinkFrame", function()
     if not combi.running then return end
 
@@ -192,6 +279,7 @@ addHook("ThinkFrame", function()
 
     for p in players.iterate do
         handleRespawn(p)
+        handleSignal(p)
     end
 end)
 

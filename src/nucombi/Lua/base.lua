@@ -2,10 +2,11 @@ rawset(_G, "combi", {
     running = false,
 })
 
-rawset(_G, "COMBI_GetCombiStuff", function(p)
+rawset(_G, "COMBI_GetCombiStuff", function(p, ishud)
     local cs = p.combistuff
 
-    if cs == nil then
+    -- Do nOt aLtEr pLaYeR_T In hUd rEnDeRiNg cOdE
+    if cs == nil and not ishud then
         cs = {
             last_dist = nil, -- distance to partner from last frame
             airtime = 0, -- When above certain threshold, teleport back to partner
@@ -13,6 +14,11 @@ rawset(_G, "COMBI_GetCombiStuff", function(p)
             friend = {
                 player = nil,
                 pending = false, -- Will be true until asked player will confirm
+            },
+            signal = {
+                direction = 0,
+                timer = 0,
+                use_custom_buttons = true,
             },
         }
         p.combistuff = cs
@@ -28,6 +34,8 @@ rawset(_G, "COMBI_ClearCombiStuff", function(p)
     cs.last_dist = nil
     cs.airtime = 0
     cs.team = nil
+    cs.signal.direction = 0
+    cs.signal.timer = 0
 end)
 
 -- Maybe someone will want to check if its "nucombi" specifically?

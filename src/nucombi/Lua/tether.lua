@@ -5,7 +5,7 @@ freeslot("S_COMBI_TETHER")
 
 local cv_dist = CV_RegisterVar {
     name = "combi_tether_dist",
-    defaultvalue = "300",
+    defaultvalue = "450",
     possiblevalue = { MIN = 1, MAX=FRACUNIT-1 },
     flags = CV_NETVAR,
 }

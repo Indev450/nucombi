@@ -152,6 +152,9 @@ addHook("MapLoad", function()
     end
 
     combi.running = cv_active.value == 1
+
+    -- interop
+    hcombi.combi_on = combi.running
 end)
 
 local function handleRespawn(p)

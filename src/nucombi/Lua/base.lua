@@ -2,6 +2,13 @@ rawset(_G, "combi", {
     running = false,
 })
 
+-- Haya combi interop
+rawset(_G, "hcombi", {
+    combi_on = false,
+
+    -- ...do we need anything else?
+})
+
 rawset(_G, "COMBI_GetCombiStuff", function(p, ishud)
     local cs = p.combistuff
 
@@ -43,4 +50,6 @@ rawset(_G, "NUCOMBI", true)
 
 addHook("NetVars", function(net)
     combi = net($)
+
+    hcombi.combi_on = net($)
 end)

@@ -103,7 +103,7 @@ local function lerpMo(mo1, mo2, t)
     return lerp(mo1.x, mo2.x, t), lerp(mo1.y, mo2.y, t), lerp(mo1.z, mo2.z, t)
 end
 
-function A_CombiTether(actor)
+local function updateSingleTether(actor)
     local p1 = actor.combi_p1
     local p2 = actor.combi_p2
 
@@ -123,6 +123,15 @@ function A_CombiTether(actor)
     P_MoveOrigin(actor, x, y, z)
 end
 
+local function updateTetherChain(first)
+    local tether = first
+
+    while tether and tether.valid do
+        updateSingleTether(tether)
+        tether = tether.hnext
+    end
+end
+
 local function spawnTetherEffect(p1, p2)
     local mo1, mo2 = p1.mo, p2.mo
 
@@ -133,6 +142,9 @@ local function spawnTetherEffect(p1, p2)
     local mult = 4*FRACUNIT/5
     local offset = (FRACUNIT-mult)/2
 
+    local prev
+    local first
+
     for i = 1, count do
         local ring = i == 1 or i == count
 
@@ -141,21 +153,25 @@ local function spawnTetherEffect(p1, p2)
 
         local x, y, z = lerpMo(mo1, mo2, t)
         local tether = P_SpawnMobj(x, y, z, MT_THOK)
+        if prev then prev.hnext = tether end
+        if not first then first = tether end
         tether.combi_p1 = p1
         tether.combi_p2 = p2
         tether.extravalue1 = t
         tether.state = S_COMBI_TETHER
+        prev = tether
     end
+
+    return first
 end
 
 states[S_COMBI_TETHER] = {
     sprite = SPR_RING,
     frame = A,
-    nextstate = S_COMBI_TETHER,
-    action = A_CombiTether,
-    tics = 1,
+    tics = -1,
 }
 
 rawset(_G, "COMBI_TetherPull", tetherPull)
 rawset(_G, "COMBI_DoTeleport", doTeleport)
 rawset(_G, "COMBI_SpawnTether", spawnTetherEffect)
+rawset(_G, "COMBI_UpdateTetherChain", updateTetherChain)

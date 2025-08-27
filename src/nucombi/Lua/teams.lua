@@ -5,6 +5,7 @@ local clearCombiStuff = COMBI_ClearCombiStuff
 local tetherPull = COMBI_TetherPull
 local doTeleport = COMBI_DoTeleport
 local spawnTetherEffect = COMBI_SpawnTether
+local updateTetherChain = COMBI_UpdateTetherChain
 
 -- Multiples of TICRATE
 local cv_maxairtime = CV_RegisterVar {
@@ -18,22 +19,27 @@ combi.teams = {}
 
 local function addTeam(p1, p2)
     table.insert(combi.teams, { p1 = p1, p2 = p2 })
+
+    local team = combi.teams[#combi.teams]
+
     if p1 then
-        getCombiStuff(p1).team = combi.teams[#combi.teams]
+        getCombiStuff(p1).team = team
 
         -- haya combi compatibility
         p1.combi = p2 and #p2
         p1.combi_p = p2
     end
     if p2 then
-        getCombiStuff(p2).team = combi.teams[#combi.teams]
+        getCombiStuff(p2).team = team
 
         -- haya combi compatibility
         p2.combi = p1 and #p1
         p2.combi_p = p1
     end
 
-    if p1 and p2 then spawnTetherEffect(p1, p2) end
+    if p1 and p2 then
+        team.tether = spawnTetherEffect(p1, p2)
+    end
 end
 
 local function isIngame(p)
@@ -129,6 +135,9 @@ local function updateTeam(team)
         team.maxposition = 0xff
         return
     end
+
+    -- Does pretty much nothing if there's no tether or no teammate, so no need for any checks
+    updateTetherChain(team.tether)
 
     local has_partner = isIngame(p2)
 

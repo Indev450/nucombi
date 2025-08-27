@@ -18,6 +18,13 @@ local cv_active = CV_RegisterVar {
     flags = CV_NETVAR,
 }
 
+local cv_friendlyfire = CV_RegisterVar {
+    name = "combi_friendlyfire",
+    defaultvalue = "Off",
+    possiblevalue = CV_OnOff,
+    flags = CV_NETVAR,
+}
+
 -- Returns matching player + other potential results, used for printing "multiple match..."
 local function findPlayer(name)
     local pnum = tonumber(name)
@@ -285,5 +292,47 @@ addHook("ThinkFrame", function()
         handleSignal(p)
     end
 end)
+
+local function playerFriendlyFire(player, inflictor, source)
+    if not combi.running then return end
+    if cv_friendlyfire.value == 1 then return end
+    if source and source.valid and source.player and source.player == player.combi_p then return true end
+end
+
+addHook("PlayerSpin", playerFriendlyFire)
+addHook("PlayerSquish", playerFriendlyFire)
+--addHook("PlayerExplode", playerFriendlyFire) -- Not sure about that one...
+
+-- Damage hooks are not enough :AAAAAAAAAAAA:
+local items = {
+    MT_BANANA, MT_BANANA_SHIELD,
+    MT_EGGMANITEM, MT_EGGMANITEM_SHIELD,
+    MT_ORBINAUT, MT_ORBINAUT_SHIELD,
+    MT_JAWZ, MT_JAWZ_SHIELD, MT_JAWZ_DUD,
+    MT_SPB,
+    MT_BALLHOG,
+}
+
+local function itemFriendlyFire(mo, pmo)
+    if not (mo.valid and pmo.valid and pmo.player) then return end
+    if not combi.running then return end
+    if cv_friendlyfire.value == 1 then return end
+
+    -- Item source
+    local p1 = mo.target and mo.target.player
+
+    -- Player being hit
+    local p2 = pmo.player
+
+    -- Disable collision
+    if p1 == p2.combi_p then
+        return false
+    end
+end
+
+for _, mt in ipairs(items) do
+    addHook("MobjCollide", itemFriendlyFire, mt)
+    addHook("MobjMoveCollide", itemFriendlyFire, mt)
+end
 
 rawset(_G, "COMBI_STARTTIME", COMBI_STARTTIME)

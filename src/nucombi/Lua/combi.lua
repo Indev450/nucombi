@@ -182,6 +182,11 @@ local function handleRespawn(p)
         return
     end
 
+    -- Wait until your partner is on ground
+    if not P_IsObjectOnGround(p2.mo) then
+        p.kartstuff[k_respawn] = max($, 5)
+    end
+
     P_MoveOrigin(p.mo, p2.mo.x, p2.mo.y, p2.mo.z + mapobjectscale*128)
     p.mo.momx = p2.mo.momx
     p.mo.momy = p2.mo.momy

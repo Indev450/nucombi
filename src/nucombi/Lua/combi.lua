@@ -340,4 +340,21 @@ for _, mt in ipairs(items) do
     addHook("MobjMoveCollide", itemFriendlyFire, mt)
 end
 
+-- Jawz pls
+addHook("MobjThinker", function(mo)
+    if not mo.valid then return end
+    if not combi.running then return end
+    if cv_friendlyfire.value == 1 then return end
+
+    local source_p = mo.target and mo.target.player
+    local target_p = mo.tracer and mo.tracer.player
+
+    if not (source_p and target_p) then return end
+
+    if target_p == source_p.combi_p then
+        mo.tracer = nil -- No
+        return
+    end
+end, MT_JAWZ)
+
 rawset(_G, "COMBI_STARTTIME", COMBI_STARTTIME)

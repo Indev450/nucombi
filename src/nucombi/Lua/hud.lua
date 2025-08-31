@@ -60,6 +60,7 @@ local function drawIcon(v, x, y, p, flags, blink)
     v.drawScaled(x*FRACUNIT, y*FRACUNIT, scale, icon, flags, cmap)
 end
 
+local dirs = { [-1] = "CMBDIR_L", [0] = "CMBDIR_F", [1] = "CMBDIR_R" }
 local function drawDirection(v, x, y, scale, dir, flags)
     local t = v.localTransFlag()>>V_ALPHASHIFT
     if leveltime % 8 < 4 then
@@ -71,16 +72,9 @@ local function drawDirection(v, x, y, scale, dir, flags)
     end
     flags = (flags & ~V_HUDTRANS)|(t<<V_ALPHASHIFT)
 
-    if dir ~= 0 then
-        local patch = dir == -1 and PATCH["DIRLEFT"] or PATCH["DIRRIGHT"]
-        x = x - FixedMul(scale, patch.width*FRACUNIT/2)
-        v.drawScaled(x, y, scale, patch, flags)
-    else
-        local patch = PATCH["DIRRIGHT"]
-        v.drawScaled(x - FixedMul(scale, patch.width*FRACUNIT), y, scale, patch, flags)
-        patch = PATCH["DIRLEFT"]
-        v.drawScaled(x, y, scale, patch, flags)
-    end
+    local patch = PATCH[dirs[dir]]
+    x = x - FixedMul(scale, patch.width*FRACUNIT/2)
+    v.drawScaled(x, y, scale, patch, flags)
 end
 
 local function drawPartner(v, p)
@@ -162,7 +156,7 @@ local function drawPartner(v, p)
 
     local cs = getCombiStuff(p, true)
     if cs and cs.signal.timer > 0 then
-        drawDirection(v, (x+21)*FRACUNIT, (100+yoffset-8)*FRACUNIT, FRACUNIT/8, cs.signal.direction, flags)
+        drawDirection(v, 160*FRACUNIT, (100+yoffset-32)*FRACUNIT, FRACUNIT/4, cs.signal.direction, flags)
     end
 end
 
@@ -313,7 +307,13 @@ local function drawPartnerDirection(v, p)
     local cs = getCombiStuff(p, true)
 
     if cs and cs.signal.timer > 0 then
-        drawDirection(v, (160+31)*FRACUNIT, 64*FRACUNIT, FRACUNIT/2, cs.signal.direction, V_HUDTRANS|V_SNAPTOTOP)
+        -- left/right signals can be moved a bit up
+        local ofs = 0
+        if cs.signal.direction ~= 0 then
+            ofs = -18
+        end
+
+        drawDirection(v, 160*FRACUNIT, (2+ofs)*FRACUNIT, FRACUNIT, cs.signal.direction, V_HUDTRANS|V_SNAPTOTOP)
     end
 end
 
@@ -333,8 +333,9 @@ local function cachePatches(v)
     addpatch("K_ISMUL")
     addpatch("K_ISIMER") -- isimer
 
-    PATCH["DIRLEFT"] = v.cachePatch("MARRD0")
-    PATCH["DIRRIGHT"] = v.cachePatch("MARRA0")
+    addpatch("CMBDIR_L")
+    addpatch("CMBDIR_R")
+    addpatch("CMBDIR_F")
 end
 
 hud.add(function(v, p)
@@ -346,5 +347,5 @@ hud.add(function(v, p)
 
     drawPartner(v, p)
     drawPartnerItem(v, p.combi_p)
-    drawPartnerDirection(v, p.combi_p)
+    drawPartnerDirection(v, p)--p.combi_p)
 end)

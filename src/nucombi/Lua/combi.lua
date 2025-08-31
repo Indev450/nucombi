@@ -344,7 +344,7 @@ end
 addHook("MobjThinker", function(mo)
     if not mo.valid then return end
     if not combi.running then return end
-    if cv_friendlyfire.value == 1 then return end
+    --if cv_friendlyfire.value == 1 then return end -- Don't target partner even if friendly fire is enabled
 
     local source_p = mo.target and mo.target.player
     local target_p = mo.tracer and mo.tracer.player

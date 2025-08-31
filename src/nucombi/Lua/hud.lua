@@ -347,5 +347,5 @@ hud.add(function(v, p)
 
     drawPartner(v, p)
     drawPartnerItem(v, p.combi_p)
-    drawPartnerDirection(v, p)--p.combi_p)
+    drawPartnerDirection(v, p.combi_p)
 end)

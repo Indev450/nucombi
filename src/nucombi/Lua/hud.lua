@@ -7,6 +7,8 @@ local getFriend = COMBI_GetFriend
 
 -- Cache for patches
 local PATCH
+-- Cache for item patches, instead of strings it uses item ids
+local ITEMPATCH = {}
 
 local cv_highresportrait
 local function useHighresPortrait()
@@ -176,14 +178,19 @@ local function getItemPatch(v, itemtype)
         return v.cachePatch("K_ISINV"..anim)
     end
 
-    return PATCH[K_GetItemPatch(itemtype, true)]
+    local patch = ITEMPATCH[itemtype]
+
+    if patch == nil then
+        patch = v.cachePatch(K_GetItemPatch(itemtype, true))
+        ITEMPATCH[itemtype] = patch
+    end
+
+    return patch
 end
 
 local function drawItem(v, x, y, itemtype, itemamount, flags, cmap)
-    local patch = getItemPatch(v, itemtype)
-
     v.draw(x, y, PATCH[darkbg[itemtype] and "K_ISBGD" or "K_ISBG"], flags)
-    if itemtype ~= 0 then v.draw(x, y, patch, flags, cmap) end
+    if itemtype ~= 0 then v.draw(x, y, getItemPatch(v, itemtype), flags, cmap) end
 
     if itemamount > 1 then
         v.draw(x, y, PATCH["K_ISMUL"], flags)
@@ -210,7 +217,7 @@ local function drawPartnerItem(v, p)
     local itemtime = 8*TICRATE
 
     if ks[k_itemroulette] then
-        item = ((ks[k_itemroulette] / 3) % 14) + 1
+        item = ((leveltime / 3) % 14) + 1
         amount = 1
         cmap = v.getColormap(TC_RAINBOW, p.skincolor)
     else
@@ -320,11 +327,6 @@ local function cachePatches(v)
     addpatch("COMBH_L")
     addpatch("COMBH_R")
     addpatch("COMBINP")
-
-    for i = KITEM_SAD, KITEM_KITCHENSINK do
-        local name = K_GetItemPatch(i, true)
-        addpatch(name)
-    end
 
     addpatch("K_ISBG")
     addpatch("K_ISBGD")

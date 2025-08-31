@@ -103,6 +103,8 @@ local function lerpMo(mo1, mo2, t)
     return lerp(mo1.x, mo2.x, t), lerp(mo1.y, mo2.y, t), lerp(mo1.z, mo2.z, t)
 end
 
+-- Too lazy to calculate formula or use states
+local anim = {0, 1, 2, 3, 4, 5, 6, 7, 8, 3, 2}
 local function updateSingleTether(actor)
     local p1 = actor.combi_p1
     local p2 = actor.combi_p2
@@ -116,11 +118,26 @@ local function updateSingleTether(actor)
         return
     end
 
-    actor.sprite = states[actor.state].sprite
-    actor.frame = A -- TODO - animation
+    local zoff = 0
+    local flip = 1
+    if actor.eflags & MFE_VERTICALFLIP then flip = -1 end
+
+    if actor.extravalue2 == 1 then
+        -- Ring
+        actor.sprite = states[actor.state].sprite
+        actor.frame = A
+    else
+        -- Sparkle
+        actor.sprite = SPR_SGNS
+        actor.frame = anim[1 + (leveltime/2 % #anim)]
+        zoff = 15*mapobjectscale -- Why does it have a weird offset???
+        if actor.target then
+            actor.color = actor.target.color
+        end
+    end
 
     local x, y, z = lerpMo(mo1, mo2, actor.extravalue1)
-    P_MoveOrigin(actor, x, y, z)
+    P_MoveOrigin(actor, x, y, z+zoff*flip)
 end
 
 local function updateTetherChain(first)
@@ -163,11 +180,22 @@ local function spawnTetherEffect(p1, p2)
 
         local x, y, z = lerpMo(mo1, mo2, t)
         local tether = P_SpawnMobj(x, y, z, MT_THOK)
+
         if prev then prev.hnext = tether end
         if not first then first = tether end
+
         tether.combi_p1 = p1
         tether.combi_p2 = p2
         tether.extravalue1 = t
+
+        if ring then
+            tether.extravalue2 = 1
+        else
+            tether.target = (i <= count/2) and mo1 or mo2
+            tether.color = tether.target.color
+            tether.colorized = true
+        end
+
         tether.state = S_COMBI_TETHER
         prev = tether
     end

@@ -6,6 +6,7 @@ local tetherPull = COMBI_TetherPull
 local doTeleport = COMBI_DoTeleport
 local spawnTetherEffect = COMBI_SpawnTether
 local updateTetherChain = COMBI_UpdateTetherChain
+local removeTetherChain = COMBI_RemoveTetherChain
 
 -- Multiples of TICRATE
 local cv_maxairtime = CV_RegisterVar {
@@ -28,6 +29,7 @@ local function addTeam(p1, p2)
         -- haya combi compatibility
         p1.combi = p2 and #p2
         p1.combi_p = p2
+        p1.has_partner = p2 ~= nil
     end
     if p2 then
         getCombiStuff(p2).team = team
@@ -35,6 +37,7 @@ local function addTeam(p1, p2)
         -- haya combi compatibility
         p2.combi = p1 and #p1
         p2.combi_p = p1
+        p2.has_partner = p1 ~= nil
     end
 
     if p1 and p2 then
@@ -129,6 +132,12 @@ local function updateTeam(team)
         p2 = nil
     end
 
+    -- If p2 isn't ingame anymore, delet the tether chain
+    if not isIngame(p2) and team.tether then
+        removeTetherChain(team.tether)
+        team.tether = nil
+    end
+
     -- Still no? Both players probably left then
     if not isIngame(p1) then
         team.p1 = nil
@@ -140,6 +149,14 @@ local function updateTeam(team)
     updateTetherChain(team.tether)
 
     local has_partner = isIngame(p2)
+
+    -- No they are NOT partners now!!!
+    if not has_partner and p1.combi_p then
+        -- We don't have gargoule... Hopefully no other mods rely on it
+        p1.combi_p = nil
+        p1.combi = nil
+        p1.has_partner = false
+    end
 
     if has_partner and isAlive(p1) and isAlive(p2) then
         tetherPull(p1, p2)

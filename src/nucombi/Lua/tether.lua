@@ -132,6 +132,16 @@ local function updateTetherChain(first)
     end
 end
 
+local function removeTetherChain(first)
+    local tether = first
+
+    while tether and tether.valid do
+        local next = tether.hnext
+        P_RemoveMobj(tether)
+        tether = next
+    end
+end
+
 local function spawnTetherEffect(p1, p2)
     local mo1, mo2 = p1.mo, p2.mo
 
@@ -175,3 +185,4 @@ rawset(_G, "COMBI_TetherPull", tetherPull)
 rawset(_G, "COMBI_DoTeleport", doTeleport)
 rawset(_G, "COMBI_SpawnTether", spawnTetherEffect)
 rawset(_G, "COMBI_UpdateTetherChain", updateTetherChain)
+rawset(_G, "COMBI_RemoveTetherChain", removeTetherChain)

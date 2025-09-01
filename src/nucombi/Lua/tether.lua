@@ -24,6 +24,49 @@ local cv_damper = CV_RegisterVar {
     flags = CV_FLOAT|CV_NETVAR,
 }
 
+local function getTetherCount()
+    return 2 + max(0, cv_dist.value/80 - 1)
+end
+
+local cv_swapcolors = CV_RegisterVar {
+    name = "combi_tether_swapcolors",
+    defaultvalue = "Off",
+    PossibleValue = {
+        On = 1,
+        Off = 0,
+        Pink = -1, -- :3
+    },
+    flags = CV_CALL|CV_NOINIT,
+    func = function(cv)
+        if not combi.running then return end
+
+        local count = getTetherCount()
+
+        for _, team in ipairs(combi.teams) do
+            local mo1 = team.p1 and team.p1.valid and team.p1.mo
+            local mo2 = team.p2 and team.p2.valid and team.p2.mo
+
+            if not (mo1 and mo2) then continue end
+
+            local tether = team.tether
+            local i = 1
+
+            while tether and tether.valid do
+                if cv.value ~= -1 then
+                    local targetcond = (i <= count/2)
+                    if cv.value == 1 then targetcond = not targetcond end
+                    tether.target = targetcond and mo1 or mo2
+                else
+                    tether.target = nil
+                end
+
+                tether = tether.hnext
+                i = i + 1
+            end
+        end
+    end,
+}
+
 local function applyAccel(mo, dirx, diry, dirz, accel)
     mo.momx = mo.momx + FixedMul(dirx, accel)
     mo.momy = mo.momy + FixedMul(diry, accel)
@@ -133,6 +176,8 @@ local function updateSingleTether(actor)
         zoff = 15*mapobjectscale -- Why does it have a weird offset???
         if actor.target then
             actor.color = actor.target.color
+        else
+            actor.color = SKINCOLOR_BUBBLEGUM
         end
     end
 
@@ -163,7 +208,7 @@ local function spawnTetherEffect(p1, p2)
     local mo1, mo2 = p1.mo, p2.mo
 
     -- 2 rings + sparks
-    local count = 2 + max(0, cv_dist.value/80 - 1)
+    local count = getTetherCount()
 
     -- This makes the t argument for lerp closer to center, so that rings aren't exactly on top of each player and are bit offset
     local mult = 4*FRACUNIT/5
@@ -191,7 +236,11 @@ local function spawnTetherEffect(p1, p2)
         if ring then
             tether.extravalue2 = 1
         else
-            tether.target = (i <= count/2) and mo1 or mo2
+            if cv_swapcolors.value ~= -1 then
+                local targetcond = (i <= count/2)
+                if cv_swapcolors.value == 1 then targetcond = not targetcond end
+                tether.target = targetcond and mo1 or mo2
+            end
             tether.color = tether.target.color
             tether.colorized = true
         end

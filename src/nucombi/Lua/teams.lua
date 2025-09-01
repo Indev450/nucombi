@@ -60,6 +60,25 @@ local function synchTimer(p1, p2, k)
     p2.kartstuff[k] = timer
 end
 
+-- Has extra functionality to manage music
+local function synchInvincibility(p1, p2)
+    local k = k_invincibilitytimer
+
+    local timer = max(p1.kartstuff[k], p2.kartstuff[k])
+
+    local oldtimer = p1.kartstuff[k]
+    p1.kartstuff[k] = timer
+    if oldtimer == 0 then
+        P_RestoreMusic(p1)
+    end
+
+    oldtimer = p2.kartstuff[k]
+    p2.kartstuff[k] = timer
+    if oldtimer == 0 then
+        P_RestoreMusic(p2)
+    end
+end
+
 local function sign(x)
     if x < 0 then return -1 end
     if x > 0 then return 1 end
@@ -72,8 +91,11 @@ local function setGrowShrink(p, timer)
 
     if timer == current then return end
 
+    p.kartstuff[k_growshrinktimer] = timer
+
     if sign(timer) ~= sign(current) then
         S_StartSound(p.mo, (sign(timer) > sign(current)) and sfx_kc5a or sfx_kc59)
+        P_RestoreMusic(p)
     end
 
     p.mo.scalespeed = mapobjectscale/TICRATE
@@ -84,7 +106,6 @@ local function setGrowShrink(p, timer)
         p.mo.destscale = 3*mapobjectscale/2
     end
 
-    p.kartstuff[k_growshrinktimer] = timer
 end
 
 local function synchGrowCancel(p1, p2)
@@ -98,6 +119,7 @@ local function setExiting(p, t, losing)
 
     p.exiting = t
     S_StartSound(p.mo, losing and sfx_klose or sfx_kwin)
+    P_RestoreMusic(p)
 end
 
 local function setLaps(p, laps)
@@ -174,7 +196,7 @@ local function updateTeam(team)
         synchTimer(p1, p2, k_startboost)
         synchTimer(p1, p2, k_driftboost)
         synchTimer(p1, p2, k_hyudorotimer)
-        synchTimer(p1, p2, k_invincibilitytimer)
+        synchInvincibility(p1, p2)
 
         -- Grow/shrink is a bit more involved
         if p1.kartstuff[k_growshrinktimer] ~= 0 or p2.kartstuff[k_growshrinktimer] ~= 0 then

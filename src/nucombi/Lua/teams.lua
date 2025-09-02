@@ -164,7 +164,7 @@ local function updateTeam(team)
     -- Still no? Both players probably left then
     if not isIngame(p1) then
         team.p1 = nil
-        team.maxposition = 0xff
+        team.minposition = 0xff
         return
     end
 
@@ -187,9 +187,9 @@ local function updateTeam(team)
     end
 
     -- For sorting and assigning positions later
-    team.maxposition = p1.kartstuff[k_position]
+    team.minposition = p1.kartstuff[k_position]
     if has_partner then
-        team.maxposition = min($, p2.kartstuff[k_position])
+        team.minposition = min($, p2.kartstuff[k_position])
     end
 
     if has_partner then
@@ -290,7 +290,7 @@ local function updateTeams()
     end
 
     -- Now assign positions
-    table.sort(combi.teams, function(a, b) return a.maxposition < b.maxposition end)
+    table.sort(combi.teams, function(a, b) return a.minposition < b.minposition end)
     for i, team in ipairs(combi.teams) do
         team.oldposition = team.position -- may be nil
         team.position = i

@@ -126,6 +126,7 @@ local function setLaps(p, laps)
     if p.laps == laps then return end
     p.laps = laps
     p.starpostnum = 0 -- Don't do 2 laps in one go pls
+    S_StartSound(nil, (laps == numlaps-1) and sfx_s3k68 or sfx_s221, p)
 end
 
 local function airTick(p)

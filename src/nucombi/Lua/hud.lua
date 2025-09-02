@@ -5,6 +5,13 @@ local isIngame = COMBI_IsInGame
 -- friends.lua
 local getFriend = COMBI_GetFriend
 
+local cv_signalscale = CV_RegisterVar {
+    name = "combi_signal_scale",
+    defaultvalue = "1.0",
+    possiblevalue = CV_Natural,
+    flags = CV_FLOAT,
+}
+
 -- Cache for patches
 local PATCH
 -- Cache for item patches, instead of strings it uses item ids
@@ -313,7 +320,7 @@ local function drawPartnerDirection(v, p)
             ofs = -18
         end
 
-        drawDirection(v, 160*FRACUNIT, (2+ofs)*FRACUNIT, FRACUNIT, cs.signal.direction, V_HUDTRANS|V_SNAPTOTOP)
+        drawDirection(v, 160*FRACUNIT, (2+ofs)*FRACUNIT, cv_signalscale.value, cs.signal.direction, V_HUDTRANS|V_SNAPTOTOP)
     end
 end
 

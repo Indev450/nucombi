@@ -290,6 +290,14 @@ addHook("ThinkFrame", function()
         assignTeams()
     end
 
+    -- Restore "true" positions because some combi team logic relies on that
+    -- They will be back to "team" positions after updateTeams()
+    for p in players.iterate do
+        if p.combirealposition ~= nil then
+            p.kartstuff[k_position] = p.combirealposition
+        end
+    end
+
     updateTeams()
 
     for p in players.iterate do
@@ -356,5 +364,20 @@ addHook("MobjThinker", function(mo)
         return
     end
 end, MT_JAWZ)
+
+-- JAWZ I SWEAR TO GOD
+addHook("MobjThinker", function(pmo)
+    if not pmo.valid and pmo.player then return end
+    if not combi.running then return end
+    if leveltime < COMBI_STARTTIME+1 then return end
+
+    local p = pmo.player
+    local team = getCombiStuff(p).team
+
+    if team.position ~= nil then
+        p.combirealposition = p.kartstuff[k_position]
+        p.kartstuff[k_position] = team.position -- <- this is what makes jawz not target teammates, because it ignores players in same position
+    end
+end, MT_PLAYER)
 
 rawset(_G, "COMBI_STARTTIME", COMBI_STARTTIME)

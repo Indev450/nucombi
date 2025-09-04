@@ -367,7 +367,7 @@ end, MT_JAWZ)
 
 -- JAWZ I SWEAR TO GOD
 addHook("MobjThinker", function(pmo)
-    if not pmo.valid and pmo.player then return end
+    if not (pmo.valid and pmo.player) then return end
     if not combi.running then return end
     if leveltime < COMBI_STARTTIME+1 then return end
 

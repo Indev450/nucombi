@@ -2,7 +2,6 @@
 
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
--- teams.lua
 local isIngame = COMBI_IsInGame
 
 local function setFriend(p1, p2)

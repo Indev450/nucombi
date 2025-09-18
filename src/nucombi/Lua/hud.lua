@@ -1,6 +1,5 @@
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
--- teams.lua
 local isIngame = COMBI_IsInGame
 -- friends.lua
 local getFriend = COMBI_GetFriend

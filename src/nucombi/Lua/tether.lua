@@ -1,5 +1,6 @@
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
+local isIngame = COMBI_IsInGame
 
 freeslot("S_COMBI_TETHER")
 
@@ -43,8 +44,8 @@ local cv_swapcolors = CV_RegisterVar {
         local count = getTetherCount()
 
         for _, team in ipairs(combi.teams) do
-            local p1 = COMBI_IsInGame(team.p1) and team.p1
-            local p2 = COMBI_IsInGame(team.p2) and team.p2
+            local p1 = isIngame(team.p1) and team.p1
+            local p2 = isIngame(team.p2) and team.p2
 
             if not (p1 and p2) then continue end
 
@@ -174,7 +175,7 @@ local function updateSingleTether(actor)
         actor.sprite = SPR_SGNS
         actor.frame = anim[1 + (leveltime/2 % #anim)]
         zoff = 15*mapobjectscale -- Why does it have a weird offset???
-        if COMBI_IsInGame(actor.combitarget) then
+        if isIngame(actor.combitarget) then
             actor.color = actor.combitarget.mo.color
         else
             actor.color = SKINCOLOR_BUBBLEGUM

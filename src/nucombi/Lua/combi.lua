@@ -1,10 +1,10 @@
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
+local isIngame = COMBI_IsInGame
 -- teams.lua
 local updateTeams = COMBI_UpdateTeams
 local resetTeams = COMBI_ResetTeams
 local assignTeams = COMBI_AssignTeams
-local isIngame = COMBI_IsInGame
 -- friends.lua
 local setFriends = COMBI_SetFriends
 local setPendingFriend = COMBI_SetPendingFriend

@@ -1,6 +1,7 @@
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
 local clearCombiStuff = COMBI_ClearCombiStuff
+local isIngame = COMBI_IsInGame
 -- tether.lua
 local tetherPull = COMBI_TetherPull
 local doTeleport = COMBI_DoTeleport
@@ -43,10 +44,6 @@ local function addTeam(p1, p2)
     if p1 and p2 then
         team.tether = spawnTetherEffect(p1, p2)
     end
-end
-
-local function isIngame(p)
-    return p and p.valid and not p.spectator
 end
 
 local function isAlive(p)
@@ -376,4 +373,3 @@ end
 rawset(_G, "COMBI_UpdateTeams", updateTeams)
 rawset(_G, "COMBI_ResetTeams", resetTeams)
 rawset(_G, "COMBI_AssignTeams", assignTeams)
-rawset(_G, "COMBI_IsInGame", isIngame)

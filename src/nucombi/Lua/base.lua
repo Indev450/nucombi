@@ -45,6 +45,10 @@ rawset(_G, "COMBI_ClearCombiStuff", function(p)
     cs.signal.timer = 0
 end)
 
+rawset(_G, "COMBI_IsInGame", function(p)
+    return p and p.valid and not p.spectator
+end)
+
 -- Maybe someone will want to check if its "nucombi" specifically?
 rawset(_G, "NUCOMBI", true)
 

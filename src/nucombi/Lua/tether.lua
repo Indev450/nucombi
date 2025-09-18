@@ -12,7 +12,7 @@ local cv_dist = CV_RegisterVar {
 
 local cv_stiffness = CV_RegisterVar {
     name = "combi_tether_stiffness",
-    defaultvalue = "0.0625",
+    defaultvalue = "0.04",
     possiblevalue = { MIN = 16, MAX = INT32_MAX },
     flags = CV_FLOAT|CV_NETVAR,
 }
@@ -43,10 +43,10 @@ local cv_swapcolors = CV_RegisterVar {
         local count = getTetherCount()
 
         for _, team in ipairs(combi.teams) do
-            local mo1 = team.p1 and team.p1.valid and team.p1.mo
-            local mo2 = team.p2 and team.p2.valid and team.p2.mo
+            local p1 = COMBI_IsInGame(team.p1) and team.p1
+            local p2 = COMBI_IsInGame(team.p2) and team.p2
 
-            if not (mo1 and mo2) then continue end
+            if not (p1 and p2) then continue end
 
             local tether = team.tether
             local i = 1
@@ -55,9 +55,9 @@ local cv_swapcolors = CV_RegisterVar {
                 if cv.value ~= -1 then
                     local targetcond = (i <= count/2)
                     if cv.value == 1 then targetcond = not targetcond end
-                    tether.target = targetcond and mo1 or mo2
+                    tether.combitarget = targetcond and p1 or p2
                 else
-                    tether.target = nil
+                    tether.combitarget = nil
                 end
 
                 tether = tether.hnext
@@ -174,8 +174,8 @@ local function updateSingleTether(actor)
         actor.sprite = SPR_SGNS
         actor.frame = anim[1 + (leveltime/2 % #anim)]
         zoff = 15*mapobjectscale -- Why does it have a weird offset???
-        if actor.target then
-            actor.color = actor.target.color
+        if COMBI_IsInGame(actor.combitarget) then
+            actor.color = actor.combitarget.mo.color
         else
             actor.color = SKINCOLOR_BUBBLEGUM
         end
@@ -239,9 +239,11 @@ local function spawnTetherEffect(p1, p2)
             if cv_swapcolors.value ~= -1 then
                 local targetcond = (i <= count/2)
                 if cv_swapcolors.value == 1 then targetcond = not targetcond end
-                tether.target = targetcond and mo1 or mo2
+                tether.combitarget = targetcond and p1 or p2
+                tether.color = tether.combitarget.mo.color
+            else
+                tether.color = SKINCOLOR_BUBBLEGUM
             end
-            tether.color = tether.target.color
             tether.colorized = true
         end
 

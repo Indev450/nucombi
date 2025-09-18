@@ -235,7 +235,7 @@ local function updateTeam(team)
     if has_partner then setLaps(p2, laps) end
 
     -- This should fix positions? Hopefully???
-    if has_partner then
+    if not exiting and has_partner then
         local starposttime = max(p1.starposttime, p2.starposttime)
         p1.starposttime = starposttime
         p2.starposttime = starposttime

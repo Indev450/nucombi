@@ -293,7 +293,7 @@ addHook("ThinkFrame", function()
     -- Restore "true" positions because some combi team logic relies on that
     -- They will be back to "team" positions after updateTeams()
     for p in players.iterate do
-        if p.combirealposition ~= nil then
+        if not p.exiting and p.combirealposition ~= nil then
             p.kartstuff[k_position] = p.combirealposition
         end
     end
@@ -369,6 +369,7 @@ end, MT_JAWZ)
 addHook("MobjThinker", function(pmo)
     if not (pmo.valid and pmo.player) then return end
     if not combi.running then return end
+    if pmo.player.exiting then return end -- If player has finished already, don't mess with positions
     if leveltime < COMBI_STARTTIME+1 then return end
 
     local p = pmo.player

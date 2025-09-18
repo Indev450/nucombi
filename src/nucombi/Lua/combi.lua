@@ -25,6 +25,13 @@ local cv_friendlyfire = CV_RegisterVar {
     flags = CV_NETVAR,
 }
 
+local cv_minplayers = CV_RegisterVar {
+    name = "combi_minimumplayers",
+    defaultvalue = "2",
+    possiblevalue = { MIN = 0, MAX = #players },
+    flags = CV_NETVAR,
+}
+
 -- Returns matching player + other potential results, used for printing "multiple match..."
 local function findPlayer(name)
     local pnum = tonumber(name)
@@ -158,32 +165,57 @@ addHook("MapLoad", function()
         resetTeams()
     end
 
-    combi.running = cv_active.value == 1
+    local c = 0
+    for p in players.iterate do
+        if not p.spectator then c = c + 1 end
+    end
+
+    combi.running = (cv_active.value == 1) and (c >= cv_minplayers.value)
 
     -- interop
     hcombi.combi_on = combi.running
 end)
 
 local function handleRespawn(p)
-    if p.kartstuff[k_respawn] <= 1 then return end
+    if p.kartstuff[k_respawn] <= 1 then
+        p.combirespawn = nil
+        return
+    end
+
     if not isIngame(p.combi_p) then return end -- Let vanilla handle respawn
 
     local p2 = p.combi_p
     local cs = getCombiStuff(p)
     local team = cs.team
 
-    -- Don't respawn into deathpit
+    -- Don't respawn in a deathpit
     if p2.deadtimer > 0 then
+        -- Oops, both players are respawning! Return them both to respawn point
+        if p.combirespawn then
+            local x = p.starpostx*FRACUNIT
+            local y = p.starposty*FRACUNIT
+            local z = p.starpostz*FRACUNIT
+
+            if p.kartstuff[k_starpostflip] then
+                z = z - 128*mapobjectscale - mo.height
+            else
+                z = z + 128*mapobjectscale
+            end
+
+            P_MoveOrigin(p.mo, x, y, z)
+            p.mo.angle = p.starpostangle
+        end
+
         return
     end
 
     -- Prevent respawning on top of each other endlessly
-    if p2.kartstuff[k_respawn] > 0 and p ~= team.p1 then
+    if p2.kartstuff[k_respawn] > 1 and p ~= team.p1 then
         return
     end
 
-    -- Wait until your partner is on ground
-    if not P_IsObjectOnGround(p2.mo) then
+    -- Wait until your partner is on *solid* ground
+    if not P_IsObjectOnGround(p2.mo) or P_InQuicksand(p2.mo) then
         p.kartstuff[k_respawn] = max($, 5)
     end
 
@@ -192,6 +224,7 @@ local function handleRespawn(p)
     p.mo.momy = p2.mo.momy
     p.mo.momz = 0
     p.mo.angle = p2.mo.angle
+    p.combirespawn = true
 end
 
 local function doSignal(p, direction)
@@ -301,8 +334,10 @@ addHook("ThinkFrame", function()
     updateTeams()
 
     for p in players.iterate do
-        handleRespawn(p)
-        handleSignal(p)
+        if not p.spectator then
+            handleRespawn(p)
+            handleSignal(p)
+        end
     end
 end)
 
@@ -375,7 +410,7 @@ addHook("MobjThinker", function(pmo)
     local p = pmo.player
     local team = getCombiStuff(p).team
 
-    if team.position ~= nil then
+    if team and team.position ~= nil then
         p.combirealposition = p.kartstuff[k_position]
         p.kartstuff[k_position] = team.position -- <- this is what makes jawz not target teammates, because it ignores players in same position
     end

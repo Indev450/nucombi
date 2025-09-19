@@ -39,11 +39,16 @@ local function getIcon(p)
     return icon, scale
 end
 
-local function drawIcon(v, x, y, p, flags, blink)
+local function drawIcon(v, x, y, p, flags, blink, nullpatch)
     local icon, scale
     local cmap
 
-    if isIngame(p) then
+    -- Needed for interpolation of p2's icon, didn't figure out better way to do it :p
+    -- If i just draw null patch separately, then icon bg still gets teleported to p1's icon position when its supposed to just blink in place
+    if nullpatch then
+        icon = PATCH["K_TRNULL"]
+        scale = FRACUNIT
+    elseif isIngame(p) then
         local name
         name, scale = getIcon(p)
         icon = v.cachePatch(name)
@@ -130,7 +135,7 @@ local function drawPartner(v, p)
         -- Slower blinking before partner is selected
         if leveltime % 8 < 4 then
             partner = ""
-            patch_r = nil
+            patch_r = PATCH["K_TRNULL"]
         end
     else
         partner = blink and "" or "no one, sorry"
@@ -151,10 +156,8 @@ local function drawPartner(v, p)
     end
 
     v.drawString(x+42, 100+yoffset, partner, flags|V_ALLOWLOWERCASE, "thin")
-    if patch_r then
-        drawIcon(v, x+24, 100+yoffset-3, p.combi_p, flags, blink)
-        v.draw(x+2, 92+yoffset, patch_r, flags, color_r)
-    end
+    drawIcon(v, x+24, 100+yoffset-3, p.combi_p, flags, blink, patch_r == PATCH["K_TRNULL"])
+    v.draw(x+2, 92+yoffset, patch_r, flags, color_r)
 
     if growcancel then
         v.drawString(x-16, 100+yoffset-14, "CANCEL GROW", flags|((leveltime % 8 < 4 and V_BLUEMAP) or 0), "thin")
@@ -342,6 +345,8 @@ local function cachePatches(v)
     addpatch("CMBDIR_L")
     addpatch("CMBDIR_R")
     addpatch("CMBDIR_F")
+
+    addpatch("K_TRNULL")
 end
 
 hud.add(function(v, p)
@@ -351,7 +356,10 @@ hud.add(function(v, p)
 
     if not PATCH then cachePatches(v) end
 
+    -- s m o o t h
+    if v.interpolate then v.interpolate(true) end
+
     drawPartner(v, p)
     drawPartnerItem(v, p.combi_p)
-    drawPartnerDirection(v, p.combi_p)
+    drawPartnerDirection(v, p)
 end)

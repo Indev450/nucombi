@@ -1,6 +1,7 @@
 -- base.lua
 local getCombiStuff = COMBI_GetCombiStuff
 local isIngame = COMBI_IsInGame
+local isAlive = COMBI_IsAlive
 -- teams.lua
 local updateTeams = COMBI_UpdateTeams
 local resetTeams = COMBI_ResetTeams
@@ -189,25 +190,7 @@ local function handleRespawn(p)
     local team = cs.team
 
     -- Don't respawn in a deathpit
-    if p2.deadtimer > 0 then
-        -- Oops, both players are respawning! Return them both to respawn point
-        if p.combirespawn then
-            local x = p.starpostx*FRACUNIT
-            local y = p.starposty*FRACUNIT
-            local z = p.starpostz*FRACUNIT
-
-            if p.kartstuff[k_starpostflip] then
-                z = z - 128*mapobjectscale - mo.height
-            else
-                z = z + 128*mapobjectscale
-            end
-
-            P_MoveOrigin(p.mo, x, y, z)
-            p.mo.angle = p.starpostangle
-        end
-
-        return
-    end
+    if not isAlive(p2) then return end
 
     -- Prevent respawning on top of each other endlessly
     if p2.kartstuff[k_respawn] > 1 and p ~= team.p1 then

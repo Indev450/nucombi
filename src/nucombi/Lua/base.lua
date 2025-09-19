@@ -49,8 +49,10 @@ rawset(_G, "COMBI_IsInGame", function(p)
     return p and p.valid and not p.spectator
 end)
 
+-- We consider quicksand also as being "dead"
+-- Not 100% accurate but *i think* that fixes respawing in Egg Quarters at least
 rawset(_G, "COMBI_IsAlive", function(p)
-    return p.deadtimer == 0 and p.kartstuff[k_respawn] == 0
+    return p.deadtimer == 0 and p.kartstuff[k_respawn] == 0 and not P_InQuicksand(p.mo)
 end)
 
 -- Maybe someone will want to check if its "nucombi" specifically?

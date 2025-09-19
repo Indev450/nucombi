@@ -341,9 +341,15 @@ addHook("ThinkFrame", function()
     end
 end)
 
+-- SPB can do anything it wants >:3
+local allow_ff = {
+    [MT_SPB] = true,
+    [MT_SPBEXPLOSION] = true,
+}
 local function playerFriendlyFire(player, inflictor, source)
     if not combi.running then return end
     if cv_friendlyfire.value == 1 then return end
+    if inflictor and inflictor.valid and allow_ff[inflictor.type] then return end
     if source and source.valid and source.player and source.player == player.combi_p then return true end
 end
 
@@ -357,7 +363,7 @@ local items = {
     MT_EGGMANITEM, MT_EGGMANITEM_SHIELD,
     MT_ORBINAUT, MT_ORBINAUT_SHIELD,
     MT_JAWZ, MT_JAWZ_SHIELD, MT_JAWZ_DUD,
-    MT_SPB,
+--  MT_SPB, -- No
     MT_BALLHOG,
 }
 

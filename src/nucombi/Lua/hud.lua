@@ -39,6 +39,29 @@ local function getIcon(p)
     return icon, scale
 end
 
+-- Entire mobj hook... Just for a small hud feature...
+addHook("MobjThinker", function(mo)
+    if not combi.running then return end
+    if mo.valid and mo.tracer and mo.tracer.player then
+        mo.tracer.player.combispbtarget = mo -- Why not a boolean? Because i'm too lazy to add another hook to clear this every frame
+    end
+end, MT_SPB)
+
+local function isSpbTarget(p)
+    return isIngame(p) and p.combispbtarget and p.combispbtarget.valid and p.combispbtarget.tracer == p.mo
+end
+
+local function drawSpbIcon(v, x, y, p, flags)
+    -- Disable interpolation for spb icon
+    if v.interpolate then v.interpolate(false) end
+    if isSpbTarget(p) then
+        local jitter = ((leveltime % 2 == 0) and 1 or -1)*(FRACUNIT/4)
+        local color = p.combispbtarget.color or SKINCOLOR_KETCHUP
+        v.drawScaled(x*FRACUNIT, y*FRACUNIT + jitter, FRACUNIT/2, PATCH["K_ISSPB"], flags, v.getColormap(TC_RAINBOW, color))
+    end
+    if v.interpolate then v.interpolate(true) end
+end
+
 local function drawIcon(v, x, y, p, flags, blink, nullpatch)
     local icon, scale
     local cmap
@@ -69,6 +92,7 @@ local function drawIcon(v, x, y, p, flags, blink, nullpatch)
     end
 
     v.drawScaled(x*FRACUNIT, y*FRACUNIT, scale, icon, flags, cmap)
+    drawSpbIcon(v, x-4, y-18, p, flags)
 end
 
 local dirs = { [-1] = "CMBDIR_L", [0] = "CMBDIR_F", [1] = "CMBDIR_R" }
@@ -341,6 +365,7 @@ local function cachePatches(v)
     addpatch("K_ISBGD")
     addpatch("K_ISMUL")
     addpatch("K_ISIMER") -- isimer
+    addpatch("K_ISSPB")
 
     addpatch("CMBDIR_L")
     addpatch("CMBDIR_R")
@@ -360,6 +385,9 @@ hud.add(function(v, p)
     if v.interpolate then v.interpolate(true) end
 
     drawPartner(v, p)
+
+    -- There is nothing to interpolate down here, disabling it just in case to avoid weird artifacts
+    if v.interpolate then v.interpolate(false) end
     drawPartnerItem(v, p.combi_p)
     drawPartnerDirection(v, p)
 end)

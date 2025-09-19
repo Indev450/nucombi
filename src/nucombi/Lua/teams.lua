@@ -2,6 +2,7 @@
 local getCombiStuff = COMBI_GetCombiStuff
 local clearCombiStuff = COMBI_ClearCombiStuff
 local isIngame = COMBI_IsInGame
+local isAlive = COMBI_IsAlive
 -- tether.lua
 local tetherPull = COMBI_TetherPull
 local doTeleport = COMBI_DoTeleport
@@ -44,10 +45,6 @@ local function addTeam(p1, p2)
     if p1 and p2 then
         team.tether = spawnTetherEffect(p1, p2)
     end
-end
-
-local function isAlive(p)
-    return p.deadtimer == 0 and p.kartstuff[k_respawn] == 0
 end
 
 -- Gentlemen, synchronize your death watches.

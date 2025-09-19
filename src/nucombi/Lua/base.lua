@@ -49,6 +49,10 @@ rawset(_G, "COMBI_IsInGame", function(p)
     return p and p.valid and not p.spectator
 end)
 
+rawset(_G, "COMBI_IsAlive", function(p)
+    return p.deadtimer == 0 and p.kartstuff[k_respawn] == 0
+end)
+
 -- Maybe someone will want to check if its "nucombi" specifically?
 rawset(_G, "NUCOMBI", true)
 

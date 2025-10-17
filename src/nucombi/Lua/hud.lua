@@ -389,5 +389,5 @@ hud.add(function(v, p)
     -- There is nothing to interpolate down here, disabling it just in case to avoid weird artifacts
     if v.interpolate then v.interpolate(false) end
     drawPartnerItem(v, p.combi_p)
-    drawPartnerDirection(v, p)
+    drawPartnerDirection(v, p.combi_p)
 end)

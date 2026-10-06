@@ -2,7 +2,8 @@
 local getCombiStuff = COMBI_GetCombiStuff
 local isIngame = COMBI_IsInGame
 
-freeslot("S_COMBI_TETHER")
+-- We only use S_COMBI_TETHER, S_COMBILINK1/2 are for leaderboard compat
+freeslot("S_COMBI_TETHER", "S_COMBILINK1", "S_COMBILINK2")
 
 local cv_dist = CV_RegisterVar {
     name = "combi_tether_dist",
@@ -257,6 +258,20 @@ end
 
 states[S_COMBI_TETHER] = {
     sprite = SPR_RING,
+    frame = A,
+    tics = -1,
+}
+
+-- For leaderboard
+
+states[S_COMBILINK1] = {
+    sprite = SPR_RING,
+    frame = A,
+    tics = -1,
+}
+
+states[S_COMBILINK2] = {
+    sprite = SPR_SGNS,
     frame = A,
     tics = -1,
 }
